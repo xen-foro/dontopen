@@ -21,6 +21,7 @@
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             max-width: 400px;
+            position: relative; /* For positioning the cloud */
         }
         h1 {
             color: #ff69b4;
@@ -32,12 +33,17 @@
             margin-top: 20px;
         }
         button {
-            padding: 10px 20px;
+            padding: 15px 20px; /* Slightly larger for roundness */
             font-size: 16px;
             border: none;
-            border-radius: 5px;
+            border-radius: 50%; /* Makes buttons round */
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: transform 0.3s ease, background-color 0.3s; /* Smooth scaling and color change */
+            min-width: 80px; /* Ensures round shape */
+            min-height: 80px; /* Ensures round shape */
+        }
+        button:hover {
+            transform: scale(1.1); /* Interactive scaling on hover */
         }
         #yesBtn {
             background-color: #4CAF50;
@@ -58,11 +64,46 @@
             font-size: 18px;
             color: #333;
         }
+        .cloud {
+            position: absolute;
+            top: -80px; /* Above the buttons */
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #fff;
+            border: 2px solid #ddd;
+            border-radius: 20px;
+            padding: 10px 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            font-size: 16px;
+            color: #333;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+            max-width: 300px;
+            word-wrap: break-word;
+        }
+        .cloud::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 10px solid #fff;
+        }
+        .cloud.show {
+            opacity: 1;
+            visibility: visible;
+        }
         /* No flickering: No animations that blink or flicker */
     </style>
 </head>
 <body>
     <div class="container">
+        <div class="cloud" id="cloud"></div> <!-- Cloud for No messages -->
         <h1>Will You Be My Valentine, Soumya?</h1>
         <div class="buttons">
             <button id="yesBtn">Yes</button>
@@ -75,6 +116,7 @@
         const yesBtn = document.getElementById('yesBtn');
         const noBtn = document.getElementById('noBtn');
         const message = document.getElementById('message');
+        const cloud = document.getElementById('cloud');
 
         const funnyReplies = [
             "Are you sure, Soumya? Think again! 😏",
@@ -94,23 +136,30 @@
         yesBtn.addEventListener('click', () => {
             message.textContent = "Yay! You said yes, Soumya! Happy Valentine's Day! 💖";
             message.style.color = "#4CAF50";
+            cloud.classList.remove('show'); // Hide cloud on yes
             // Disable buttons after yes
             yesBtn.disabled = true;
             noBtn.disabled = true;
         });
 
         noBtn.addEventListener('click', () => {
-            message.textContent = funnyReplies[noClickCount % funnyReplies.length];
-            message.style.color = "#f44336";
+            const reply = funnyReplies[noClickCount % funnyReplies.length];
+            cloud.textContent = reply;
+            cloud.classList.add('show'); // Show cloud with message
+            message.textContent = ""; // Clear main message to focus on cloud
             noClickCount++;
-            // Make the no button "run away" by moving it randomly
+            // Hide cloud after 3 seconds
+            setTimeout(() => {
+                cloud.classList.remove('show');
+            }, 3000);
+            // Make the no button "run away" by moving it randomly within the container
             const container = document.querySelector('.container');
             const containerRect = container.getBoundingClientRect();
             const btnRect = noBtn.getBoundingClientRect();
-            const maxX = containerRect.width - btnRect.width;
-            const maxY = containerRect.height - btnRect.height - 100; // Leave space for message
+            const maxX = containerRect.width - btnRect.width - 20; // Keep inside box with padding
+            const maxY = containerRect.height - btnRect.height - 150; // Leave space for message and cloud
             const randomX = Math.random() * maxX;
-            const randomY = Math.random() * maxY;
+            const randomY = Math.random() * maxY + 100; // Start below the cloud
             noBtn.style.position = 'absolute';
             noBtn.style.left = randomX + 'px';
             noBtn.style.top = randomY + 'px';
